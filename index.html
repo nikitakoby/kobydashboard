@@ -503,17 +503,28 @@ function loadCalendar() {
     }
     var todayStr = new Date().toDateString();
     box.innerHTML = evs.map(function(ev) {
-      var start = ev.start.dateTime ? new Date(ev.start.dateTime) : new Date(ev.start.date);
-      var isToday = start.toDateString() === todayStr;
-      var prefix = isToday ? 'Сегодня' : start.getDate() + ' ' + MONTHS_SHORT[start.getMonth()];
-      var timeStr = ev.start.dateTime
-        ? prefix + ', ' + pad(start.getHours()) + ':' + pad(start.getMinutes())
-        : prefix + ' (весь день)';
-      return '<div class="ev' + (isToday?' today':'') + '">' +
-        '<div class="ev-time">' + timeStr + '</div>' +
-        '<div class="ev-title">' + (ev.summary || '(без названия)') + '</div>' +
-        '</div>';
-    }).join('');
+  var start = ev.start.dateTime ? new Date(ev.start.dateTime) : new Date(ev.start.date);
+  var isToday = start.toDateString() === todayStr;
+
+  // День недели: Вс, Пн, Вт, ...
+  var weekday = DAYS_SHORT[start.getDay()];
+  // Дата: 5 мар
+  var datePart = start.getDate() + ' ' + MONTHS_SHORT[start.getMonth()];
+
+  // Префикс: либо "Сегодня", либо "Ср, 5 мар"
+  var prefix = isToday ? 'Сегодня' : (weekday + ', ' + datePart);
+
+  // Время/весь день
+  var timeStr = ev.start.dateTime
+    ? prefix + ' · ' + pad(start.getHours()) + ':' + pad(start.getMinutes())
+    : prefix + ' · весь день';
+
+  return '<div class="ev' + (isToday ? ' today' : '') + '">' +
+           '<div class="ev-time">' + timeStr + '</div>' +
+           '<div class="ev-title">' + (ev.summary || '(без названия)') + '</div>' +
+         '</div>';
+}).join('');
+
   }).catch(function(e){ onAuthError(e.status); });
 }
 
