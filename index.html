@@ -371,20 +371,39 @@ function loadFinance() {
     });
 
   // Золото (XAU/USD)
-  fetch('https://api.metals.live/v1/spot/gold')
-    .then(function(r){ return r.json(); })
-    .then(function(d) {
-      var price = d[0].price.toFixed(2);
-      var change = ((d[0].price - d[0].open) / d[0].open * 100).toFixed(2);
-      
-      document.getElementById('gold-val').textContent = '$' + price;
-      var changeEl = document.getElementById('gold-change');
-      changeEl.textContent = (change > 0 ? '+' : '') + change + '%';
-      changeEl.className = 'fin-change ' + (change >= 0 ? 'fin-up' : 'fin-down');
-    })
-    .catch(function(){
-      document.getElementById('gold-val').textContent = 'н/д';
-    });
+  fetch('https://freegoldapi.com/data/latest.json')
+  .then(function(r){ return r.json(); })
+  .then(function(d) {
+    if (!Array.isArray(d) || d.length < 2) {
+      throw new Error('Not enough gold data');
+    }
+
+    var last     = d[d.length - 1];     // сегодня
+    var prev     = d[d.length - 2];     // вчера
+    var lastPrice = Number(last.price);
+    var prevPrice = Number(prev.price);
+
+    if (!isFinite(lastPrice) || !isFinite(prevPrice)) {
+      throw new Error('Invalid price values');
+    }
+
+    var price  = lastPrice.toFixed(2);
+    var change = ((lastPrice - prevPrice) / prevPrice * 100).toFixed(2);
+
+    document.getElementById('gold-val').textContent = '$' + price;
+
+    var changeEl = document.getElementById('gold-change');
+    changeEl.textContent = (change > 0 ? '+' : '') + change + '%';
+    changeEl.className = 'fin-change ' + (change >= 0 ? 'fin-up' : 'fin-down');
+  })
+  .catch(function(err){
+    console.error('Gold error:', err);
+    document.getElementById('gold-val').textContent = 'н/д';
+    var changeEl = document.getElementById('gold-change');
+    changeEl.textContent = '--';
+    changeEl.className = 'fin-change';
+  });
+
 
   // Bitcoin
   fetch('https://api.coinbase.com/v2/exchange-rates?currency=BTC')
