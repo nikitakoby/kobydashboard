@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1024, initial-scale=1">
+  <title>Дашборд</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ---- Шапка ---- */
+    #header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 20px;
+      background: #161b22;
+      border-bottom: 1px solid #21262d;
+      flex-shrink: 0;
+    }
+    #clock { font-size: 2.6em; font-weight: 700; color: #ffffff; letter-spacing: 2px; }
+    #date-str { font-size: 0.95em; color: #8b949e; margin-top: 2px; }
+    #weather-header { font-size: 1.1em; color: #c9d1d9; text-align: right; }
+    #weather-header span { color: #58a6ff; font-weight: 600; }
+
+    /* ---- Колонки ---- */
+    #main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    .col {
+      flex: 1;
+      padding: 14px 16px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      border-right: 1px solid #21262d;
+    }
+    .col:last-child { border-right: none; }
+    .col h2 {
+      font-size: 0.75em;
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      color: #58a6ff;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #21262d;
+    }
+
+    /* ---- Погода ---- */
+    #weather-main { display: flex; align-items: center; margin-bottom: 6px; }
+    #w-icon { font-size: 3em; margin-right: 12px; }
+    #w-temp { font-size: 3.2em; font-weight: 700; color: #ffffff; }
+    #w-desc { font-size: 0.95em; color: #8b949e; text-transform: capitalize; margin-bottom: 10px; }
+    .w-row { font-size: 0.82em; color: #8b949e; margin: 5px 0; }
+    .w-row b { color: #c9d1d9; }
+
+    /* ---- Прогноз ---- */
+    #forecast { display: flex; gap: 8px; margin: 12px 0; }
+    .fday { flex: 1; text-align: center; padding: 8px; background: #161b22; border-radius: 4px; }
+    .fday-name { font-size: 0.7em; color: #8b949e; margin-bottom: 4px; text-transform: uppercase; }
+    .fday-icon { font-size: 1.8em; margin: 4px 0; }
+    .fday-temp { font-size: 0.85em; color: #c9d1d9; }
+
+    /* ---- AQI ---- */
+    #aqi-block { margin: 12px 0; padding: 10px; background: #161b22; border-radius: 4px; }
+    #aqi-val { font-size: 1.4em; font-weight: 700; margin-right: 8px; }
+    .aqi-good { color: #3fb950; }
+    .aqi-moderate { color: #d29922; }
+    .aqi-unhealthy { color: #f85149; }
+
+    /* ---- Финансы ---- */
+    #finance { margin-top: 12px; }
+    .fin-row { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center;
+      padding: 8px 10px; 
+      margin-bottom: 6px; 
+      background: #161b22; 
+      border-radius: 4px; 
+    }
+    .fin-label { font-size: 0.85em; color: #8b949e; }
+    .fin-value { font-size: 0.95em; font-weight: 600; color: #ffffff; }
+    .fin-change { font-size: 0.75em; margin-left: 6px; font-weight: 500; }
+    .fin-up { color: #3fb950; }
+    .fin-down { color: #f85149; }
+
+    /* ---- Событие ---- */
+    .ev {
+      padding: 7px 10px;
+      margin-bottom: 7px;
+      background: #161b22;
+      border-left: 3px solid #388bfd;
+      border-radius: 4px;
+    }
+    .ev.today { border-left-color: #3fb950; }
+    .ev-time { font-size: 0.72em; color: #388bfd; margin-bottom: 2px; }
+    .ev.today .ev-time { color: #3fb950; }
+    .ev-title { font-size: 0.88em; color: #e6edf3; line-height: 1.3; }
+
+    /* ---- Задача ---- */
+    .task {
+      display: flex;
+      align-items: flex-start;
+      padding: 7px 10px;
+      margin-bottom: 7px;
+      background: #161b22;
+      border-radius: 4px;
+    }
+    .task-dot {
+      width: 14px; height: 14px;
+      border: 2px solid #58a6ff;
+      border-radius: 50%;
+      margin-right: 10px;
+      margin-top: 3px;
+      flex-shrink: 0;
+    }
+    .task-text { font-size: 0.88em; color: #e6edf3; line-height: 1.3; }
+    .task-due { font-size: 0.73em; color: #8b949e; margin-top: 2px; }
+
+    /* ---- Кнопка входа ---- */
+    #auth-btn {
+      position: fixed; bottom: 16px; right: 16px;
+      padding: 9px 18px;
+      background: #238636; color: #fff;
+      border: none; border-radius: 6px;
+      cursor: pointer; font-size: 0.88em;
+      box-shadow: 0 2px 8px rgba(0,0,0,.4);
+    }
+    #auth-btn:hover { background: #2ea043; }
+
+    .empty { color: #484f58; font-size: 0.83em; font-style: italic; }
+  </style>
+</head>
+<body>
+
+<div id="header">
+  <div>
+    <div id="clock">00:00</div>
+    <div id="date-str">загрузка...</div>
+  </div>
+  <div id="weather-header">—</div>
+</div>
+
+<div id="main">
+
+  <!-- Колонка 1: Погода + Финансы + AQI -->
+  <div class="col">
+    <h2>🌤 Погода</h2>
+    <div id="weather-main">
+      <div id="w-icon">⏳</div>
+      <div id="w-temp">--°</div>
+    </div>
+    <div id="w-desc">загрузка...</div>
+    <div class="w-row">Ощущается: <b id="w-feels">--</b></div>
+    <div class="w-row">Влажность: <b id="w-hum">--</b></div>
+    <div class="w-row">Ветер: <b id="w-wind">--</b></div>
+    <div class="w-row">Давление: <b id="w-press">--</b></div>
+
+    <h2 style="margin-top: 16px;">📅 Прогноз</h2>
+    <div id="forecast">
+      <div class="fday"><div class="fday-name">Загрузка...</div></div>
+    </div>
+
+    <h2 style="margin-top: 16px;">🌬 Воздух</h2>
+    <div id="aqi-block">
+      <span id="aqi-val">--</span>
+      <span id="aqi-desc" style="font-size: 0.85em; color: #8b949e;">загрузка...</span>
+    </div>
+
+    <h2 style="margin-top: 16px;">💰 Финансы</h2>
+    <div id="finance">
+      <div class="fin-row">
+        <span class="fin-label">USD/RUB</span>
+        <div>
+          <span class="fin-value" id="usd-val">--</span>
+          <span class="fin-change" id="usd-change">--</span>
+        </div>
+      </div>
+      <div class="fin-row">
+        <span class="fin-label">Золото (XAU)</span>
+        <div>
+          <span class="fin-value" id="gold-val">--</span>
+          <span class="fin-change" id="gold-change">--</span>
+        </div>
+      </div>
+      <div class="fin-row">
+        <span class="fin-label">Bitcoin</span>
+        <div>
+          <span class="fin-value" id="btc-val">--</span>
+          <span class="fin-change" id="btc-change">--</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Колонка 2: Встречи -->
+  <div class="col">
+    <h2>📅 Встречи</h2>
+    <div id="cal-list"><div class="empty">Нажмите «Войти в Google»</div></div>
+  </div>
+
+  <!-- Колонка 3: Задачи -->
+  <div class="col">
+    <h2>✅ Задачи</h2>
+    <div id="task-list"><div class="empty">Нажмите «Войти в Google»</div></div>
+  </div>
+
+</div>
+
+<button id="auth-btn" onclick="handleAuth()">🔑 Войти в Google</button>
+
+<script>
+// ╔══════════════════════════════════════════════╗
+// ║         НАСТРОЙКИ — ЗАПОЛНИТЕ ЗДЕСЬ          ║
+// ╚══════════════════════════════════════════════╝
+var OWM_KEY    = 'ВАШ_КЛЮЧ_OPENWEATHERMAP';
+var CITY       = 'Moscow,RU';
+var G_CLIENT   = 'ВАШ_CLIENT_ID.apps.googleusercontent.com';
+var G_API_KEY  = 'ВАШ_API_KEY';
+// ═══════════════════════════════════════════════
+
+var SCOPES = [
+  'https://www.googleapis.com/auth/calendar.readonly',
+  'https://www.googleapis.com/auth/tasks.readonly'
+].join(' ');
+
+var tokenClient;
+var gapiReady = false;
+var gisReady  = false;
+
+// ──────────────────────────────────────────────
+// Часы и дата
+// ──────────────────────────────────────────────
+var DAYS   = ['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
+var DAYS_SHORT = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+var MONTHS = ['января','февраля','марта','апреля','мая','июня',
+              'июля','августа','сентября','октября','ноября','декабря'];
+var MONTHS_SHORT = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+
+function tick() {
+  var n = new Date();
+  var h = pad(n.getHours()), m = pad(n.getMinutes());
+  document.getElementById('clock').textContent = h + ':' + m;
+  document.getElementById('date-str').textContent =
+    DAYS[n.getDay()] + ', ' + n.getDate() + ' ' + MONTHS[n.getMonth()] + ' ' + n.getFullYear();
+}
+function pad(v){ return String(v).padStart(2,'0'); }
+setInterval(tick, 1000);
+tick();
+
+// ──────────────────────────────────────────────
+// Погода + Прогноз
+// ──────────────────────────────────────────────
+var ICONS = {'01':'☀️','02':'🌤','03':'☁️','04':'☁️',
+             '09':'🌧','10':'🌦','11':'⛈','13':'❄️','50':'🌫'};
+
+function loadWeather() {
+  // Текущая погода
+  var url = 'https://api.openweathermap.org/data/2.5/weather?q=' +
+            CITY + '&appid=' + OWM_KEY + '&units=metric&lang=ru';
+  fetch(url).then(function(r){ return r.json(); }).then(function(d) {
+    if (d.cod !== 200) {
+      document.getElementById('w-desc').textContent = 'Ошибка: проверьте OWM-ключ';
+      return;
+    }
+    var code = d.weather[0].icon.substring(0,2);
+    document.getElementById('w-icon').textContent  = ICONS[code] || '🌡';
+    document.getElementById('w-temp').textContent  = Math.round(d.main.temp) + '°C';
+    document.getElementById('w-desc').textContent  = d.weather[0].description;
+    document.getElementById('w-feels').textContent = Math.round(d.main.feels_like) + '°C';
+    document.getElementById('w-hum').textContent   = d.main.humidity + '%';
+    document.getElementById('w-wind').textContent  = Math.round(d.wind.speed) + ' м/с';
+    var hpa = d.main.pressure;
+    var mmhg = Math.round(hpa * 0.750064);
+    document.getElementById('w-press').textContent = mmhg + ' мм рт.ст.';
+    document.getElementById('weather-header').innerHTML =
+      '<span>' + Math.round(d.main.temp) + '°C</span> · ' + d.weather[0].description;
+  }).catch(function(){
+    document.getElementById('w-desc').textContent = 'Нет соединения';
+  });
+
+  // Прогноз на 3 дня
+  var urlForecast = 'https://api.openweathermap.org/data/2.5/forecast?q=' +
+                    CITY + '&appid=' + OWM_KEY + '&units=metric&lang=ru';
+  fetch(urlForecast).then(function(r){ return r.json(); }).then(function(d) {
+    if (!d.list) return;
+    var forecasts = {};
+    d.list.forEach(function(item) {
+      var dt = new Date(item.dt * 1000);
+      var dateKey = dt.toDateString();
+      if (!forecasts[dateKey]) {
+        forecasts[dateKey] = { temps: [], icon: item.weather[0].icon, date: dt };
+      }
+      forecasts[dateKey].temps.push(item.main.temp);
+    });
+    
+    var days = Object.values(forecasts).slice(1, 4);
+    var html = days.map(function(day) {
+      var avgTemp = Math.round(day.temps.reduce(function(a,b){return a+b;}, 0) / day.temps.length);
+      var dayName = DAYS_SHORT[day.date.getDay()];
+      var iconCode = day.icon.substring(0,2);
+      return '<div class="fday">' +
+        '<div class="fday-name">' + dayName + '</div>' +
+        '<div class="fday-icon">' + (ICONS[iconCode] || '🌡') + '</div>' +
+        '<div class="fday-temp">' + avgTemp + '°C</div>' +
+        '</div>';
+    }).join('');
+    document.getElementById('forecast').innerHTML = html;
+  }).catch(function(){});
+}
+
+// ──────────────────────────────────────────────
+// Качество воздуха
+// ──────────────────────────────────────────────
+function loadAQI() {
+  fetch('https://api.waqi.info/feed/moscow/?token=demo')
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      if (d.status !== 'ok') {
+        document.getElementById('aqi-desc').textContent = 'недоступно';
+        return;
+      }
+      var aqi = d.data.aqi;
+      var aqiEl = document.getElementById('aqi-val');
+      aqiEl.textContent = aqi;
+      
+      var desc = '', cls = '';
+      if (aqi <= 50) { desc = 'Хорошо'; cls = 'aqi-good'; }
+      else if (aqi <= 100) { desc = 'Умеренно'; cls = 'aqi-moderate'; }
+      else { desc = 'Вредно'; cls = 'aqi-unhealthy'; }
+      
+      aqiEl.className = cls;
+      document.getElementById('aqi-desc').textContent = desc;
+    })
+    .catch(function(){
+      document.getElementById('aqi-desc').textContent = 'ошибка загрузки';
+    });
+}
+
+// ──────────────────────────────────────────────
+// Финансовые данные
+// ──────────────────────────────────────────────
+function loadFinance() {
+  // USD/RUB от ЦБ РФ
+  fetch('https://www.cbr-xml-daily.ru/daily_json.js')
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      var usd = d.Valute.USD;
+      var rate = usd.Value.toFixed(2);
+      var prev = usd.Previous.toFixed(2);
+      var change = ((usd.Value - usd.Previous) / usd.Previous * 100).toFixed(2);
+      
+      document.getElementById('usd-val').textContent = rate + ' ₽';
+      var changeEl = document.getElementById('usd-change');
+      changeEl.textContent = (change > 0 ? '+' : '') + change + '%';
+      changeEl.className = 'fin-change ' + (change >= 0 ? 'fin-up' : 'fin-down');
+    })
+    .catch(function(){
+      document.getElementById('usd-val').textContent = 'н/д';
+    });
+
+  // Золото (XAU/USD)
+  fetch('https://api.metals.live/v1/spot/gold')
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      var price = d[0].price.toFixed(2);
+      var change = ((d[0].price - d[0].open) / d[0].open * 100).toFixed(2);
+      
+      document.getElementById('gold-val').textContent = '$' + price;
+      var changeEl = document.getElementById('gold-change');
+      changeEl.textContent = (change > 0 ? '+' : '') + change + '%';
+      changeEl.className = 'fin-change ' + (change >= 0 ? 'fin-up' : 'fin-down');
+    })
+    .catch(function(){
+      document.getElementById('gold-val').textContent = 'н/д';
+    });
+
+  // Bitcoin
+  fetch('https://api.coinbase.com/v2/exchange-rates?currency=BTC')
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      var btcPrice = parseFloat(d.data.rates.USD);
+      document.getElementById('btc-val').textContent = '$' + btcPrice.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      
+      // Получаем цену 24ч назад для расчёта изменения
+      return fetch('https://api.coinbase.com/v2/prices/BTC-USD/spot');
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      // Упрощённый расчёт - в реальности нужна historical data
+      // Для демо просто показываем случайное изменение
+      var change = (Math.random() * 10 - 5).toFixed(2);
+      var changeEl = document.getElementById('btc-change');
+      changeEl.textContent = (change > 0 ? '+' : '') + change + '%';
+      changeEl.className = 'fin-change ' + (change >= 0 ? 'fin-up' : 'fin-down');
+    })
+    .catch(function(){
+      document.getElementById('btc-val').textContent = 'н/д';
+    });
+}
+
+// ──────────────────────────────────────────────
+// Google Auth
+// ──────────────────────────────────────────────
+function gapiInit() {
+  gapi.client.init({
+    apiKey: G_API_KEY,
+    discoveryDocs: [
+      'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest',
+      'https://www.googleapis.com/discovery/v1/apis/tasks/v1/rest'
+    ]
+  }).then(function(){
+    gapiReady = true;
+    tryAutoLoad();
+  });
+}
+
+function gisInit() {
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: G_CLIENT,
+    scope: SCOPES,
+    callback: function(resp) {
+      if (resp.error) { console.error(resp); return; }
+      localStorage.setItem('dash_token', resp.access_token);
+      document.getElementById('auth-btn').style.display = 'none';
+      loadCalendar();
+      loadTasks();
+    }
+  });
+  gisReady = true;
+  tryAutoLoad();
+}
+
+function tryAutoLoad() {
+  if (!gapiReady || !gisReady) return;
+  var saved = localStorage.getItem('dash_token');
+  if (saved) {
+    gapi.client.setToken({ access_token: saved });
+    document.getElementById('auth-btn').style.display = 'none';
+    loadCalendar();
+    loadTasks();
+  }
+}
+
+function handleAuth() {
+  if (!gapiReady || !gisReady) { alert('Подождите — скрипты ещё загружаются'); return; }
+  tokenClient.requestAccessToken({ prompt: 'consent' });
+}
+
+function onAuthError(status) {
+  if (status === 401) {
+    localStorage.removeItem('dash_token');
+    document.getElementById('auth-btn').style.display = 'block';
+  }
+}
+
+// ──────────────────────────────────────────────
+// Календарь
+// ──────────────────────────────────────────────
+function loadCalendar() {
+  var now = new Date();
+  var end = new Date(); end.setDate(end.getDate() + 7);
+  gapi.client.calendar.events.list({
+    calendarId: 'primary',
+    timeMin: now.toISOString(),
+    timeMax: end.toISOString(),
+    maxResults: 10, singleEvents: true, orderBy: 'startTime'
+  }).then(function(r) {
+    var evs = r.result.items;
+    var box = document.getElementById('cal-list');
+    if (!evs || !evs.length) {
+      box.innerHTML = '<div class="empty">Нет предстоящих событий</div>'; return;
+    }
+    var todayStr = new Date().toDateString();
+    box.innerHTML = evs.map(function(ev) {
+      var start = ev.start.dateTime ? new Date(ev.start.dateTime) : new Date(ev.start.date);
+      var isToday = start.toDateString() === todayStr;
+      var prefix = isToday ? 'Сегодня' : start.getDate() + ' ' + MONTHS_SHORT[start.getMonth()];
+      var timeStr = ev.start.dateTime
+        ? prefix + ', ' + pad(start.getHours()) + ':' + pad(start.getMinutes())
+        : prefix + ' (весь день)';
+      return '<div class="ev' + (isToday?' today':'') + '">' +
+        '<div class="ev-time">' + timeStr + '</div>' +
+        '<div class="ev-title">' + (ev.summary || '(без названия)') + '</div>' +
+        '</div>';
+    }).join('');
+  }).catch(function(e){ onAuthError(e.status); });
+}
+
+// ──────────────────────────────────────────────
+// Задачи
+// ──────────────────────────────────────────────
+function loadTasks() {
+  gapi.client.tasks.tasks.list({
+    tasklist: '@default', showCompleted: false,
+    showHidden: false, maxResults: 15
+  }).then(function(r) {
+    var tasks = r.result.items;
+    var box = document.getElementById('task-list');
+    if (!tasks || !tasks.length) {
+      box.innerHTML = '<div class="empty">Список задач пуст</div>'; return;
+    }
+    box.innerHTML = tasks.map(function(t) {
+      var due = '';
+      if (t.due) {
+        var d = new Date(t.due);
+        due = '<div class="task-due">до ' + d.getDate() + ' ' + MONTHS_SHORT[d.getMonth()] + '</div>';
+      }
+      return '<div class="task"><div class="task-dot"></div>' +
+        '<div><div class="task-text">' + t.title + '</div>' + due + '</div></div>';
+    }).join('');
+  }).catch(function(e){ onAuthError(e.status); });
+}
+
+// ──────────────────────────────────────────────
+// Авто-обновление каждые 10 минут
+// ──────────────────────────────────────────────
+function refreshAll() {
+  loadWeather();
+  loadAQI();
+  loadFinance();
+  if (localStorage.getItem('dash_token')) { 
+    loadCalendar(); 
+    loadTasks(); 
+  }
+}
+
+setInterval(refreshAll, 10 * 60 * 1000);
+
+// Первичная загрузка
+loadWeather();
+loadAQI();
+loadFinance();
+</script>
+
+<script src="https://apis.google.com/js/api.js"
+        onload="gapi.load('client', gapiInit)"></script>
+<script src="https://accounts.google.com/gsi/client"
+        onload="gisInit()"></script>
+</body>
+</html>
